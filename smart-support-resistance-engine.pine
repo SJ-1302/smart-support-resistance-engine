@@ -1,0 +1,161 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © velupandianravichandran
+// Algorithm: Smart Support & Resistance Engine
+// Description: Draws ±100/200/300/400 point open-based support and resistance boxes,
+//              custom R/S level lines, and daily opening range boxes based on the day open price.
+
+//@version=5
+indicator('Smart Support & Resistance Engine', overlay=true, max_lines_count=500, max_bars_back=4900, max_boxes_count=500, format=format.price, precision=2)
+
+//-------------------------------------------------------------------------------------------
+// Password Check
+password = input.string(title="Please Enter Password", defval="impetus")
+var passlock = false
+if str.tostring(password) == "impetus"
+    passlock := true
+
+//-------------------------------------------------------------------------------------------
+// Inputs: Show +-100 Points Support Boxes
+show_JB   = input(true   , "Show +-100 Points Support Boxes?", inline="JB", group="100 Point Level")
+show_historical_jb_box = input(false   , "Show Historical +- 100 Points Support Boxes?", inline="JB", group="100 Point Level")
+
+// Custom R/S Level Inputs
+show_jb_res1 = input(title='Resistance Levels' , defval=0.00,group="R/S Level", inline="JB Res")
+show_jb_res2 = input(title='' , defval=0.00,group="R/S Level", inline="JB Res")
+show_jb_res3 = input(title='' , defval=0.00,group="R/S Level", inline="JB Res")
+show_jb_res4 = input(title='' , defval=0.00,group="R/S Level", inline="JB Res")
+show_jb_res5 = input(title='' , defval=0.00,group="R/S Level", inline="JB Res")
+show_jb_sup1 = input(title='Support Levels' , defval=0.00,group="R/S Level", inline="JB Sup")
+show_jb_sup2 = input(title='' , defval=0.00,group="R/S Level", inline="JB Sup")
+show_jb_sup3 = input(title='' , defval=0.00,group="R/S Level", inline="JB Sup")
+show_jb_sup4 = input(title='' , defval=0.00,group="R/S Level", inline="JB Sup")
+show_jb_sup5 = input(title='' , defval=0.00,group="R/S Level", inline="JB Sup")
+
+//-------------------------------------------------------------------------------------------
+// Helper Functions
+is_new_day() =>
+    d = dayofweek
+    na(d[1]) or d != d[1]
+is_newbar(res) => ta.change(time(res)) != 0
+
+oTime = timestamp(year,month,dayofmonth,00,00)
+cTime = timestamp(year,month,dayofmonth,24,00)
+
+//-------------------------------------------------------------------------------------------
+// Day Open + ATR
+jb_day_open = passlock ? request.security(syminfo.tickerid, '5', ta.valuewhen(is_newbar('D'),open,0), lookahead=barmerge.lookahead_on) : na
+intraday_atr = ta.atr(14)
+intraday_atr_by2 = intraday_atr/2
+
+//-------------------------------------------------------------------------------------------
+// ±100 Point Levels
+jb_day_open_plus_100 = jb_day_open+100
+jb_day_open_plus_100_top = jb_day_open_plus_100+10
+jb_day_open_plus_100_bottom = jb_day_open_plus_100-10
+
+jb_day_open_minus_100 = jb_day_open-100
+jb_day_open_minus_100_top = jb_day_open_minus_100+10
+jb_day_open_minus_100_bottom = jb_day_open_minus_100-10
+
+//-------------------------------------------------------------------------------------------
+// Custom R/S Lines
+show_jb_res1_line = show_JB and passlock and (show_jb_res1 != 0.00)? line.new(oTime, show_jb_res1, cTime, show_jb_res1, xloc=xloc.bar_time, color=color.red, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_res2_line = show_JB and passlock and (show_jb_res2 != 0.00)? line.new(oTime, show_jb_res2, cTime, show_jb_res2, xloc=xloc.bar_time, color=color.red, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_res3_line = show_JB and passlock and (show_jb_res3 != 0.00)? line.new(oTime, show_jb_res3, cTime, show_jb_res3, xloc=xloc.bar_time, color=color.red, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_res4_line = show_JB and passlock and (show_jb_res4 != 0.00)? line.new(oTime, show_jb_res4, cTime, show_jb_res4, xloc=xloc.bar_time, color=color.red, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_res5_line = show_JB and passlock and (show_jb_res5 != 0.00)? line.new(oTime, show_jb_res5, cTime, show_jb_res5, xloc=xloc.bar_time, color=color.red, extend=extend.both, style=line.style_dashed, width=2) : na
+
+show_jb_sup1_line = show_JB and passlock and (show_jb_sup1 != 0.00)? line.new(oTime, show_jb_sup1, cTime, show_jb_sup1, xloc=xloc.bar_time, color=color.green, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_sup2_line = show_JB and passlock and (show_jb_sup2 != 0.00)? line.new(oTime, show_jb_sup2, cTime, show_jb_sup2, xloc=xloc.bar_time, color=color.green, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_sup3_line = show_JB and passlock and (show_jb_sup3 != 0.00)? line.new(oTime, show_jb_sup3, cTime, show_jb_sup3, xloc=xloc.bar_time, color=color.green, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_sup4_line = show_JB and passlock and (show_jb_sup4 != 0.00)? line.new(oTime, show_jb_sup4, cTime, show_jb_sup4, xloc=xloc.bar_time, color=color.green, extend=extend.both, style=line.style_dashed, width=2) : na
+show_jb_sup5_line = show_JB and passlock and (show_jb_sup5 != 0.00)? line.new(oTime, show_jb_sup5, cTime, show_jb_sup5, xloc=xloc.bar_time, color=color.green, extend=extend.both, style=line.style_dashed, width=2) : na
+
+//-------------------------------------------------------------------------------------------
+// +-100 Resistance & Support Boxes
+var b_jb_resistanceBox = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(b_jb_resistanceBox, oTime, jb_day_open_plus_100_top)
+box.set_rightbottom(b_jb_resistanceBox, cTime, jb_day_open_plus_100_bottom)
+box.set_bgcolor(b_jb_resistanceBox, color.new(color.red,80))
+
+var b_jb_supportBox = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(b_jb_supportBox, oTime, jb_day_open_minus_100_top)
+box.set_rightbottom(b_jb_supportBox, cTime, jb_day_open_minus_100_bottom)
+box.set_bgcolor(b_jb_supportBox, color.new(color.green,80))
+
+// Historical JB boxes (plot series)
+redBoxHigh = plot(show_historical_jb_box and passlock? jb_day_open_plus_100_top : na, title='JB Box High', color=color.new(color.red,80), style=plot.style_linebr)
+redBoxLow = plot(show_historical_jb_box and passlock? jb_day_open_plus_100_bottom : na, title='JB Box Low', color=color.new(color.red,80), style=plot.style_linebr)
+fill(redBoxHigh, redBoxLow, color.new(color.red,80))
+
+supBoxHigh = plot(show_historical_jb_box and passlock? jb_day_open_minus_100_top : na, title='JB Box High', color=color.new(color.green,80), style=plot.style_linebr)
+supBoxLow = plot(show_historical_jb_box and passlock? jb_day_open_minus_100_bottom : na, title='JB Box Low', color=color.new(color.green,80), style=plot.style_linebr)
+fill(supBoxHigh, supBoxLow, color.new(color.green,80))
+
+//-------------------------------------------------------------------------------------------
+// Open Box (±10 around open)
+open_plus_10_top = jb_day_open+10
+open_plus_10_bottom = jb_day_open-10
+
+var box1 = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(box1, oTime, open_plus_10_top)
+box.set_rightbottom(box1, cTime, open_plus_10_bottom)
+box.set_bgcolor(box1, color.new(color.red,80))
+
+//-------------------------------------------------------------------------------------------
+// +200, +300, +400 Point Resistance Boxes
+jb_day_open_plus_200 = jb_day_open+200
+jb_day_open_plus_200_top = jb_day_open_plus_200+10
+jb_day_open_plus_200_bottom = jb_day_open_plus_200-10
+
+var plus_200_box = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(plus_200_box, oTime, jb_day_open_plus_200_top)
+box.set_rightbottom(plus_200_box, cTime, jb_day_open_plus_200_bottom)
+box.set_bgcolor(plus_200_box, color.new(color.red,80))
+
+jb_day_open_plus_300 = jb_day_open+300
+jb_day_open_plus_300_top = jb_day_open_plus_300+10
+jb_day_open_plus_300_bottom = jb_day_open_plus_300-10
+
+var plus_300_box = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(plus_300_box, oTime, jb_day_open_plus_300_top)
+box.set_rightbottom(plus_300_box, cTime, jb_day_open_plus_300_bottom)
+box.set_bgcolor(plus_300_box, color.new(color.red,80))
+
+jb_day_open_plus_400 = jb_day_open+400
+jb_day_open_plus_400_top = jb_day_open_plus_400+10
+jb_day_open_plus_400_bottom = jb_day_open_plus_400-10
+
+var plus_400_box = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(plus_400_box, oTime, jb_day_open_plus_400_top)
+box.set_rightbottom(plus_400_box, cTime, jb_day_open_plus_400_bottom)
+box.set_bgcolor(plus_400_box, color.new(color.red,80))
+
+//-------------------------------------------------------------------------------------------
+// -200, -300, -400 Point Support Boxes
+jb_day_open_minus_200 = jb_day_open-200
+jb_day_open_minus_200_top = jb_day_open_minus_200+10
+jb_day_open_minus_200_bottom = jb_day_open_minus_200-10
+
+var minus_200_box = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(minus_200_box, oTime, jb_day_open_minus_200_top)
+box.set_rightbottom(minus_200_box, cTime, jb_day_open_minus_200_bottom)
+box.set_bgcolor(minus_200_box, color.new(color.green,80))
+
+jb_day_open_minus_300 = jb_day_open-300
+jb_day_open_minus_300_top = jb_day_open_minus_300+10
+jb_day_open_minus_300_bottom = jb_day_open_minus_300-10
+
+var minus_300_box = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(minus_300_box, oTime, jb_day_open_minus_300_top)
+box.set_rightbottom(minus_300_box, cTime, jb_day_open_minus_300_bottom)
+box.set_bgcolor(minus_300_box, color.new(color.green,80))
+
+jb_day_open_minus_400 = jb_day_open-400
+jb_day_open_minus_400_top = jb_day_open_minus_400+10
+jb_day_open_minus_400_bottom = jb_day_open_minus_400-10
+
+var minus_400_box = passlock and show_JB ? box.new(oTime, open, cTime, close, xloc=xloc.bar_time, border_style=line.style_dashed) : na
+box.set_lefttop(minus_400_box, oTime, jb_day_open_minus_400_top)
+box.set_rightbottom(minus_400_box, cTime, jb_day_open_minus_400_bottom)
+box.set_bgcolor(minus_400_box, color.new(color.green,80))
